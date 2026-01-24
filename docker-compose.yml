@@ -3,8 +3,8 @@ services:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     restart: always
-    ports:
-      - "2181:2181"
+    #    ports:
+    #      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -24,6 +24,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      #      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -69,25 +70,8 @@ services:
       - "8084:8084"      # WSS
       - "18083:18083"    # Dashboard
     volumes:
-      - emqx-data:/opt/emqx/data
+      - ./emqx:/opt/emqx/data
       - ./emqx/data/configs/cluster.hocon:/opt/emqx/data/configs/cluster.hocon
-    networks:
-      - nexora-network
-
-  opa:
-    image: openpolicyagent/opa:latest
-    container_name: opa
-    restart: always
-    command:
-      - "run"
-      - "--server"
-      - "--log-level=debug"
-      - "/policies"
-      - "--addr=0.0.0.0:8181"
-    volumes:
-      - ./opa:/policies
-    ports:
-      - "8181:8181"
     networks:
       - nexora-network
 
@@ -155,8 +139,8 @@ services:
     restart: always
     ports:
       - "3000:3000"
-    depends_on:
-      - nexora-bff
+    #    depends_on:
+    #      - nexora-bff
     networks:
       - nexora-network
 
