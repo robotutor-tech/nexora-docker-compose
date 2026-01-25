@@ -5,6 +5,11 @@ services:
     restart: always
     #    ports:
     #      - "2181:2181"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -16,6 +21,11 @@ services:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       - zookeeper
 #    ports:
@@ -36,6 +46,11 @@ services:
   redis:
     image: redis:7.2.7-alpine
     container_name: redis
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 #    ports:
 #      - "6379:6379"
     command: [ "redis-server", "--appendonly", "yes" ]
@@ -49,6 +64,11 @@ services:
     image: mongo
     container_name: mongo
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       - "27018:27017"
     environment:
@@ -62,6 +82,11 @@ services:
   emqx:
     image: emqx/emqx:5.10.0
     container_name: emqx
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       - "1883:1883"      # MQTT
       - "8883:8883"      # MQTTS
@@ -79,6 +104,11 @@ services:
     image: shiviraj/nexora-backend:latest
     container_name: nexora-backend
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 #    ports:
 #      - "9001:9001"
     environment:
@@ -99,6 +129,11 @@ services:
     image: shiviraj/nexora-bff:latest
     container_name: nexora-bff
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 #    ports:
 #      - "3001:3001"
     environment:
@@ -121,6 +156,11 @@ services:
     image: shiviraj/mqtt-handler:latest
     container_name: mqtt-handler
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 #    ports:
 #      - "3002:3002"
     environment:
@@ -137,6 +177,11 @@ services:
     image: shiviraj/nexora-ui:latest
     container_name: nexora-ui
     restart: always
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 #    ports:
 #      - "3000:3000"
     #    depends_on:
@@ -148,6 +193,11 @@ services:
     image: nginx:stable-perl
     container_name: nexora-nginx
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
     depends_on:
       - nexora-ui
     volumes:
