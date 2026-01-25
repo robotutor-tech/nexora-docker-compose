@@ -8,12 +8,16 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=zookeeper,environment=production"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
       ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_LOG4J_LOGGERS: "org.apache.zookeeper=INFO"
     networks:
       - nexora-network
 
@@ -24,8 +28,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=kafka,environment=production"
     depends_on:
       - zookeeper
 #    ports:
@@ -38,22 +44,28 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_TOOLS_LOG4J_LOGLEVEL: INFO
     volumes:
       - kafka-data:/var/lib/kafka/data
+      - kafka-logs:/var/log/kafka
     networks:
       - nexora-network
 
   redis:
     image: redis:7.2.7-alpine
     container_name: redis
+    restart: always
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=redis,environment=production"
 #    ports:
 #      - "6379:6379"
-    command: [ "redis-server", "--appendonly", "yes" ]
+    command: [ "redis-server", "--appendonly", "yes", "--loglevel", "notice" ]
     volumes:
       - redis-data:/data
     networks:
@@ -67,26 +79,33 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=mongodb,environment=production"
     ports:
       - "27018:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: $MONGO_ROOT_USERNAME
-      MONGO_INITDB_ROOT_PASSWORD: $MONGO_ROOT_PASSWORD
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    command: ["mongod", "--logpath", "/var/log/mongodb/mongod.log", "--logappend"]
     volumes:
       - mongo-data:/data/db
+      - mongo-logs:/var/log/mongodb
     networks:
       - nexora-network
 
   emqx:
     image: emqx/emqx:5.10.0
     container_name: emqx
+    restart: always
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=emqx,environment=production"
     ports:
       - "1883:1883"      # MQTT
       - "8883:8883"      # MQTTS
@@ -97,6 +116,7 @@ services:
     volumes:
       - ./emqx:/opt/emqx/data
       - ./emqx/data/configs/cluster.hocon:/opt/emqx/data/configs/cluster.hocon
+      - emqx-logs:/opt/emqx/log
     networks:
       - nexora-network
 
@@ -107,8 +127,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=nexora-backend,environment=production"
 #    ports:
 #      - "9001:9001"
     environment:
@@ -132,8 +154,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=nexora-bff,environment=production"
 #    ports:
 #      - "3001:3001"
     environment:
@@ -159,8 +183,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=mqtt-handler,environment=production"
 #    ports:
 #      - "3002:3002"
     environment:
@@ -180,8 +206,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=nexora-ui,environment=production"
 #    ports:
 #      - "3000:3000"
     #    depends_on:
@@ -196,8 +224,10 @@ services:
     logging:
       driver: "json-file"
       options:
-        max-size: "10m"
-        max-file: "5"
+        max-size: "50m"
+        max-file: "10"
+        compress: "true"
+        labels: "service=nginx,environment=production"
     depends_on:
       - nexora-ui
     volumes:
@@ -210,8 +240,11 @@ services:
 volumes:
   redis-data:
   mongo-data:
+  mongo-logs:
   kafka-data:
+  kafka-logs:
   emqx-data:
+  emqx-logs:
 
 networks:
   nexora-network:
