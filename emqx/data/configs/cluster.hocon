@@ -59,7 +59,7 @@ authentication = [
         "tlsv1.2"
       ]
     }
-    url = "http://host.docker.internal:3002/api/mqtt/auth"
+    url = "http://mqtt-handler:3002/api/mqtt/auth"
   }
 ]
 authorization {
@@ -110,7 +110,7 @@ authorization {
         ]
       }
       type = http
-      url = "http://host.docker.internal:3002/api/mqtt/acl"
+      url = "http://mqtt-handler:3002/api/mqtt/acl"
     }
   ]
 }
@@ -147,7 +147,7 @@ connectors {
         ]
       }
       tags = []
-      url = "http://host.docker.internal:3002/api/mqtt/status"
+      url = "http://mqtt-handler:3002/api/mqtt/status"
     }
   }
 }

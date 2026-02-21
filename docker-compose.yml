@@ -3,15 +3,6 @@ services:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     restart: always
-    #    ports:
-    #      - "2181:2181"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=zookeeper,environment=production"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -25,17 +16,10 @@ services:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=kafka,environment=production"
     depends_on:
       - zookeeper
-#    ports:
-#      - "9092:9092"
+    #    ports:
+    #      - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -56,39 +40,22 @@ services:
     image: redis:7.2.7-alpine
     container_name: redis
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=redis,environment=production"
-#    ports:
-#      - "6379:6379"
     command: [ "redis-server", "--appendonly", "yes", "--loglevel", "notice" ]
     volumes:
       - redis-data:/data
     networks:
       - nexora-network
 
-
   mongo:
     image: mongo:4.4.18
     container_name: mongo
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=mongodb,environment=production"
     ports:
       - "27018:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
-    command: ["mongod", "--logpath", "/var/log/mongodb/mongod.log", "--logappend"]
+    command: [ "mongod", "--logpath", "/var/log/mongodb/mongod.log", "--logappend" ]
     volumes:
       - mongo-data:/data/db
       - mongo-logs:/var/log/mongodb
@@ -99,13 +66,6 @@ services:
     image: emqx/emqx:5.10.0
     container_name: emqx
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=emqx,environment=production"
     ports:
       - "1883:1883"      # MQTT
       - "8883:8883"      # MQTTS
@@ -121,18 +81,9 @@ services:
       - nexora-network
 
   nexora-backend:
-    image: shiviraj/nexora-backend:latest
+    image: shiviraj/nexora-backend:${ENV}
     container_name: nexora-backend
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=nexora-backend,environment=production"
-#    ports:
-#      - "9001:9001"
     environment:
       MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/nexora?authSource=admin
       REDIS_HOST: redis
@@ -148,18 +99,9 @@ services:
       - nexora-network
 
   nexora-bff:
-    image: shiviraj/nexora-bff:latest
+    image: shiviraj/nexora-bff:${ENV}
     container_name: nexora-bff
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=nexora-bff,environment=production"
-#    ports:
-#      - "3001:3001"
     environment:
       APPLICATION_NAME: nexora-bff
       KAFKA_URL: kafka:9092
@@ -173,22 +115,15 @@ services:
       ZONE_SERVICE_BASE_URL: http://nexora-backend:9001
     depends_on:
       - nexora-backend
+      - kafka
+      - redis
     networks:
       - nexora-network
 
   mqtt-handler:
-    image: shiviraj/mqtt-handler:latest
+    image: shiviraj/mqtt-handler:${ENV}
     container_name: mqtt-handler
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=mqtt-handler,environment=production"
-#    ports:
-#      - "3002:3002"
     environment:
       REDIS_URL: redis://redis:6379
       IAM_SERVICE_BASE_URL: http://nexora-backend:9001
@@ -196,38 +131,24 @@ services:
       AUTH_SERVICE_BASE_URL: http://nexora-backend:9001
     depends_on:
       - nexora-backend
+      - redis
+      - kafka
     networks:
       - nexora-network
 
   nexora-ui:
-    image: shiviraj/nexora-ui:latest
+    image: shiviraj/nexora-ui:${ENV}
     container_name: nexora-ui
     restart: always
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=nexora-ui,environment=production"
-#    ports:
-#      - "3000:3000"
-    #    depends_on:
-    #      - nexora-bff
+    depends_on:
+      - nexora-bff
     networks:
       - nexora-network
 
   nginx:
     image: nginx:stable-perl
     container_name: nexora-nginx
-    restart: unless-stopped
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "50m"
-        max-file: "10"
-        compress: "true"
-        labels: "service=nginx,environment=production"
+    restart: always
     depends_on:
       - nexora-ui
     volumes:
@@ -236,6 +157,14 @@ services:
       - "5000:5000"
     networks:
       - nexora-network
+
+  watchtower:
+    image: containrrr/watchtower:latest
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 60 --cleanup
 
 volumes:
   redis-data:
