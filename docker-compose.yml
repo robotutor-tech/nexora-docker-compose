@@ -121,7 +121,7 @@ services:
       - nexora-network
 
   mqtt-handler:
-    image: shiviraj/mqtt-handler:${ENV}
+    image: shiviraj/nexora-mqtt-handler:${ENV}
     container_name: mqtt-handler
     restart: always
     environment:
