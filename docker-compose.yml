@@ -1,7 +1,6 @@
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
-    container_name: zookeeper
     restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -14,7 +13,6 @@ services:
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
-    container_name: kafka
     restart: always
     depends_on:
       - zookeeper
@@ -38,7 +36,6 @@ services:
 
   redis:
     image: redis:7.2.7-alpine
-    container_name: redis
     restart: always
     command: [ "redis-server", "--appendonly", "yes", "--loglevel", "notice" ]
     volumes:
@@ -48,7 +45,6 @@ services:
 
   mongo:
     image: mongo:4.4.18
-    container_name: mongo
     restart: always
     ports:
       - ${MONGO_PORT}:27017
@@ -64,7 +60,6 @@ services:
 
   emqx:
     image: emqx/emqx:5.10.0
-    container_name: emqx
     restart: always
     ports:
       - "1883:1883"      # MQTT
@@ -74,7 +69,7 @@ services:
       - "8084:8084"      # WSS
       - "18083:18083"    # Dashboard
     volumes:
-      - ./emqx:/opt/emqx/data
+      - emqx-data:/opt/emqx/data
       - ./emqx/data/configs/cluster.hocon:/opt/emqx/data/configs/cluster.hocon
       - emqx-logs:/opt/emqx/log
     networks:
@@ -82,7 +77,6 @@ services:
 
   nexora-backend:
     image: shiviraj/nexora-backend:${ENV}
-    container_name: nexora-backend
     restart: always
     environment:
       MONGODB_URL: mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/nexora?authSource=admin
@@ -100,7 +94,6 @@ services:
 
   nexora-bff:
     image: shiviraj/nexora-bff:${ENV}
-    container_name: nexora-bff
     restart: always
     environment:
       APPLICATION_NAME: nexora-bff
@@ -122,7 +115,6 @@ services:
 
   mqtt-handler:
     image: shiviraj/nexora-mqtt-handler:${ENV}
-    container_name: mqtt-handler
     restart: always
     environment:
       REDIS_URL: redis://redis:6379
@@ -138,7 +130,6 @@ services:
 
   nexora-ui:
     image: shiviraj/nexora-ui:${ENV}
-    container_name: nexora-ui
     restart: always
     depends_on:
       - nexora-bff
@@ -147,7 +138,6 @@ services:
 
   nginx:
     image: nginx:stable-perl
-    container_name: nexora-nginx
     restart: always
     depends_on:
       - nexora-ui
@@ -160,7 +150,6 @@ services:
 
   watchtower:
     image: containrrr/watchtower:latest
-    container_name: watchtower
     restart: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
