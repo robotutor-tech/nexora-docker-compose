@@ -62,12 +62,12 @@ services:
     image: emqx/emqx:5.10.0
     restart: always
     ports:
-      - "1883:1883"      # MQTT
-      - "8883:8883"      # MQTTS
-      - "8081:8081"      # HTTP API
-      - "8083:8083"      # WS
-      - "8084:8084"      # WSS
-      - "18083:18083"    # Dashboard
+      - ${EMQX_PORT_MQTT}:1883      # MQTT
+      - ${EMQX_PORT_MQTTS}:8883      # MQTTS
+      - ${EMQX_PORT_HTTP}:8081      # HTTP API
+      - ${EMQX_PORT_WS}:8083      # WS
+      - ${EMQX_PORT_WSS}:8084      # WSS
+      - ${EMQX_PORT_DASHBOARD}:18083    # Dashboard
     volumes:
       - emqx-data:/opt/emqx/data
       - ./emqx/data/configs/cluster.hocon:/opt/emqx/data/configs/cluster.hocon
